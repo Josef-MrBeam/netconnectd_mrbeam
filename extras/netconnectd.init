@@ -16,7 +16,7 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC="netconnectd"
 NAME="netconnectd"
-DAEMON=/home/pi/oprint/bin/netconnectd
+DAEMON=/usr/local/bin/netconnectd
 PIDFILE=/var/run/$NAME.pid
 SOCKET=/var/run/$NAME.sock
 CONFIGFILE=/etc/$NAME.yaml
