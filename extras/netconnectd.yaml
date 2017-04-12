@@ -31,7 +31,7 @@ ap:
   ssid: MrBeam2-AP
 
   # your AP wifi's passphrase
-  psk: mrbeamrocks
+  psk: mrbeamsetup
 
   # wifi channel on which the AP should run
   #channel: 3
