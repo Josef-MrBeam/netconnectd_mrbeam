@@ -967,6 +967,8 @@ class cmd_build(_build):
         if os.path.exists(target_versionfile):
             os.unlink(target_versionfile)
         f = open(target_versionfile, "w")
+        if 'branch' not in versions:
+            versions['branch'] = "unknown"
         f.write(SHORT_VERSION_PY % versions)
         f.close()
 
