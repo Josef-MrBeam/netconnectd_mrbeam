@@ -362,7 +362,7 @@ class Server(object):
             return None
 
         try:
-            return list(filter(lambda x: x.ssid == ssid, self.cells))[0]
+            return list([x for x in self.cells if x.ssid == ssid])[0]
         except IndexError:
             return None
 
@@ -659,7 +659,7 @@ def server():
         return arg
 
     def dhcp_range(arg):
-        split_arg = map(lambda x: x.strip(), arg.split(","))
+        split_arg = [x.strip() for x in arg.split(",")]
         if len(split_arg) != 2:
             raise argparse.ArgumentTypeError("%s is not a valid DHCP range, please provide a comma separated list of the start and end IP" % arg)
 
@@ -829,7 +829,7 @@ def server():
             def run(self):
                 start_server(config)
 
-        daemon = ServerDaemon(pidfile=args.pid, umask=002)
+        daemon = ServerDaemon(pidfile=args.pid, umask=0o02)
         daemon.start()
 
 if __name__ == '__main__':

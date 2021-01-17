@@ -88,7 +88,7 @@ def parse_configfile(configfile):
 
     def merge_config(default, config, mandatory, prefix=None):
         result = dict()
-        for k, v in default.items():
+        for k, v in list(default.items()):
             result[k] = v
 
             prefixed_key = "%s.%s" % (prefix, k) if prefix else k

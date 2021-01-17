@@ -1,4 +1,4 @@
-from __future__ import print_function, absolute_import
+
 
 import json
 
@@ -18,7 +18,7 @@ class Message(object):
         data = json.loads(s)
 
         result = []
-        for cmd, params in data.items():
+        for cmd, params in list(data.items()):
             message = cls.from_data(cmd, params)
             if message is not None:
                 result.append(message)
@@ -52,11 +52,11 @@ class Message(object):
         unseen_mandatory_params = list(self.__class__.__mandatory_params__)
 
         # set all optional params to their default values
-        for k, v in self.__class__.__optional_params__.items():
+        for k, v in list(self.__class__.__optional_params__.items()):
             setattr(self, k, v)
 
         # now let's see what we got as constructor parameters
-        for k, v in kwargs.items():
+        for k, v in list(kwargs.items()):
             # None values get skipped
             if v is None:
                 continue
@@ -150,7 +150,7 @@ class Response(object):
         data = json.loads(s)
 
         result = []
-        for cmd, params in data.items():
+        for cmd, params in list(data.items()):
             response = cls.from_data(cmd, params)
             if response is not None:
                 result.append(response)

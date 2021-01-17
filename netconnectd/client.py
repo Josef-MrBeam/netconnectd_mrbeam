@@ -63,7 +63,7 @@ def client_send_message(address, message):
 
             def print_result(result, sep='\t', indent=0):
                 if isinstance(result, dict):
-                    for key, value in result.items():
+                    for key, value in list(result.items()):
                         print(sep * indent + str(key) + ':')
                         print_result(value, sep=sep, indent=indent + 1)
                 elif isinstance(result, (tuple, list)):
