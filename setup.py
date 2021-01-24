@@ -4,12 +4,13 @@
 from setuptools import setup, Command
 
 import versioneer
-versioneer.VCS = 'git'
-versioneer.versionfile_source = 'netconnectd/_version.py'
-versioneer.versionfile_build = 'netconnectd/_version.py'
-versioneer.tag_prefix = ''
-versioneer.parentdir_prefix = ''
-versioneer.lookupfile = '.versioneer-lookup'
+
+versioneer.VCS = "git"
+versioneer.versionfile_source = "netconnectd/_version.py"
+versioneer.versionfile_build = "netconnectd/_version.py"
+versioneer.tag_prefix = ""
+versioneer.parentdir_prefix = ""
+versioneer.lookupfile = ".versioneer-lookup"
 
 DESCRIPTION = "A daemon for staying connected"
 LONG_DESCRIPTION = """netconnectd is a small Python daemon for ensuring a
@@ -24,16 +25,16 @@ JSON-based protocol over a unix domain socket.
 """
 
 EXTRAS_FOLDERS = [
-    ('/etc/netconnectd.conf.d', 0o755),
-    ('/etc/netconnectd.conf.d/hostapd', 0o755),
-    ('/etc/netconnectd.conf.d/dnsmasq', 0o755)
+    ("/etc/netconnectd.conf.d", 0o755),
+    ("/etc/netconnectd.conf.d/hostapd", 0o755),
+    ("/etc/netconnectd.conf.d/dnsmasq", 0o755),
 ]
 
 EXTRAS_FILES = [
-    ('/etc/init.d/', [('extras/netconnectd.init', 'netconnectd', 0o755)]),
-    ('/etc/default/', [('extras/netconnectd.default', 'netconnectd', 0o644)]),
-    ('/etc/', [('extras/netconnectd.yaml', 'netconnectd.yaml', 0o600)]),
-    ('/etc/logrotate.d/', [('extras/netconnectd.logrotate', 'netconnectd', 0o644)]),
+    ("/etc/init.d/", [("extras/netconnectd.init", "netconnectd", 0o755)]),
+    ("/etc/default/", [("extras/netconnectd.default", "netconnectd", 0o644)]),
+    ("/etc/", [("extras/netconnectd.yaml", "netconnectd.yaml", 0o600)]),
+    ("/etc/logrotate.d/", [("extras/netconnectd.logrotate", "netconnectd", 0o644)]),
 ]
 
 
@@ -93,7 +94,12 @@ class InstallExtrasCommand(Command):
             for entry in files:
                 extra_tuple = get_extra_tuple(entry)
                 if extra_tuple is None:
-                    print(("Can't parse entry for target %s, skipping it: %r" % (target, entry)))
+                    print(
+                        (
+                            "Can't parse entry for target %s, skipping it: %r"
+                            % (target, entry)
+                        )
+                    )
                     continue
 
                 path, filename, mode = extra_tuple
@@ -101,14 +107,24 @@ class InstallExtrasCommand(Command):
 
                 path_exists = os.path.exists(target_path)
                 if path_exists and not self.force:
-                    print(("Skipping copying %s to %s as it already exists, use --force to overwrite" % (path, target_path)))
+                    print(
+                        (
+                            "Skipping copying %s to %s as it already exists, use --force to overwrite"
+                            % (path, target_path)
+                        )
+                    )
                     continue
 
                 try:
                     shutil.copy(path, target_path)
                     if mode:
                         os.chmod(target_path, mode)
-                        print(("Copied %s to %s and changed mode to %o" % (path, target_path, mode)))
+                        print(
+                            (
+                                "Copied %s to %s and changed mode to %o"
+                                % (path, target_path, mode)
+                            )
+                        )
                     else:
                         print(("Copied %s to %s" % (path, target_path)))
                 except Exception as e:
@@ -120,7 +136,13 @@ class InstallExtrasCommand(Command):
                             pass
 
                     import sys
-                    print(("Error while copying %s to %s (%s), aborting" % (path, target_path, e.message)))
+
+                    print(
+                        (
+                            "Error while copying %s to %s (%s), aborting"
+                            % (path, target_path, e.message)
+                        )
+                    )
                     sys.exit(-1)
 
 
@@ -142,7 +164,12 @@ class UninstallExtrasCommand(Command):
             for entry in files:
                 extra_tuple = get_extra_tuple(entry)
                 if extra_tuple is None:
-                    print(("Can't parse entry for target %s, skipping it: %r" % (target, entry)))
+                    print(
+                        (
+                            "Can't parse entry for target %s, skipping it: %r"
+                            % (target, entry)
+                        )
+                    )
 
                 path, filename, mode = extra_tuple
                 target_path = os.path.join(target, filename)
@@ -150,21 +177,33 @@ class UninstallExtrasCommand(Command):
                     os.remove(target_path)
                     print(("Removed %s" % target_path))
                 except Exception as e:
-                    print(("Error while deleting %s from %s (%s), please remove manually" % (filename, target, e.message)))
+                    print(
+                        (
+                            "Error while deleting %s from %s (%s), please remove manually"
+                            % (filename, target, e.message)
+                        )
+                    )
 
         for folder, mode in EXTRAS_FOLDERS[::-1]:
             try:
                 os.rmdir(folder)
             except Exception as e:
-                print(("Error while removing %s (%s), please remove manually" % (folder, e.message)))
+                print(
+                    (
+                        "Error while removing %s (%s), please remove manually"
+                        % (folder, e.message)
+                    )
+                )
 
 
 def get_cmdclass():
     cmdclass = versioneer.get_cmdclass()
-    cmdclass.update({
-        'install_extras': InstallExtrasCommand,
-        'uninstall_extras': UninstallExtrasCommand
-    })
+    cmdclass.update(
+        {
+            "install_extras": InstallExtrasCommand,
+            "uninstall_extras": UninstallExtrasCommand,
+        }
+    )
     return cmdclass
 
 
@@ -182,22 +221,17 @@ def params():
     packages = ["netconnectd"]
     zip_safe = False
 
-    dependency_links = [
-        "https://github.com/foosel/wifi/tarball/master#egg=wifi-1.0.1"
-    ]
-    install_requires = [
-        "wifi==1.0.1",
-        "PyYaml",
-        "netaddr"
-    ]
+    dependency_links = ["https://github.com/foosel/wifi/tarball/master#egg=wifi-1.0.1"]
+    install_requires = ["wifi==1.0.1", "PyYaml", "netaddr"]
 
     entry_points = {
         "console_scripts": {
             "netconnectd = netconnectd:server",
-            "netconnectcli = netconnectd:client"
+            "netconnectcli = netconnectd:client",
         }
     }
 
     return locals()
+
 
 setup(**params())

@@ -1,10 +1,10 @@
-
-
 import json
 
 
 def all_subclasses(cls):
-    return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in all_subclasses(s)]
+    return cls.__subclasses__() + [
+        g for s in cls.__subclasses__() for g in all_subclasses(s)
+    ]
 
 
 class Message(object):
@@ -73,16 +73,27 @@ class Message(object):
 
         # not all mandatory params present? raise exception
         if len(unseen_mandatory_params) > 0:
-            raise ValueError("Missing mandatory parameters: %r" % unseen_mandatory_params)
+            raise ValueError(
+                "Missing mandatory parameters: %r" % unseen_mandatory_params
+            )
 
     def __str__(self):
-        return json.dumps(self.__class__.to_message_obj(self), encoding="utf8", separators=(",", ":"))
+        return json.dumps(
+            self.__class__.to_message_obj(self), encoding="utf8", separators=(",", ":")
+        )
 
     def __repr__(self):
-        return "{name}({attrs})".format(name=self.__class__.__name__, attrs=repr(vars(self)))
+        return "{name}({attrs})".format(
+            name=self.__class__.__name__, attrs=repr(vars(self))
+        )
 
     def send(self, io):
-        json.dump(self.__class__.to_message_obj(self), io, encoding="utf8", separators=(",", ":"))
+        json.dump(
+            self.__class__.to_message_obj(self),
+            io,
+            encoding="utf8",
+            separators=(",", ":"),
+        )
 
     @property
     def cmd(self):
@@ -90,7 +101,10 @@ class Message(object):
 
     @classmethod
     def to_message_obj(cls, message):
-        if not hasattr(message.__class__, "__cmd__") or message.__class__.__cmd__ is None:
+        if (
+            not hasattr(message.__class__, "__cmd__")
+            or message.__class__.__cmd__ is None
+        ):
             return None
 
         obj = dict()
@@ -134,7 +148,6 @@ class ResetMessage(Message):
 
 
 class Response(object):
-
     def __str__(self):
         return json.dumps(vars(self), encoding="utf8", separators=(",", ":"))
 
@@ -171,7 +184,6 @@ class Response(object):
 
 
 class SuccessResponse(Response):
-
     def __init__(self, result):
         self.result = result
 
@@ -181,7 +193,6 @@ class SuccessResponse(Response):
 
 
 class ErrorResponse(Response):
-
     def __init__(self, result):
         self.error = result
 
