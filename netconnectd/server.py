@@ -248,10 +248,10 @@ class Server(object):
                         if chunk:
                             self.logger.info("Recv: %r" % chunk)
                             buffer.append(chunk)
-                            if chunk.endswith("\x00"):
+                            if chunk.endswith(b"\x00"):
                                 break
 
-                    data = "".join(buffer).strip()[:-1]
+                    data = b"".join(buffer).strip()[:-1]
 
                     ret = False
                     result = "unknown message"
@@ -271,7 +271,7 @@ class Server(object):
                         response = ErrorResponse(result)
 
                     self.logger.info("Send: %s" % str(response))
-                    connection.sendall(str(response) + "\x00")
+                    connection.sendall(str(response).encode("utf-8") + b"\x00")
 
                 except:
                     self.logger.exception(

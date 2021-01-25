@@ -79,7 +79,7 @@ class Message(object):
 
     def __str__(self):
         return json.dumps(
-            self.__class__.to_message_obj(self), encoding="utf8", separators=(",", ":")
+            self.__class__.to_message_obj(self), separators=(",", ":")
         )
 
     def __repr__(self):
