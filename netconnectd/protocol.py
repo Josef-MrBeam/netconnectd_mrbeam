@@ -91,7 +91,6 @@ class Message(object):
         json.dump(
             self.__class__.to_message_obj(self),
             io,
-            encoding="utf8",
             separators=(",", ":"),
         )
 
@@ -149,10 +148,10 @@ class ResetMessage(Message):
 
 class Response(object):
     def __str__(self):
-        return json.dumps(vars(self), encoding="utf8", separators=(",", ":"))
+        return json.dumps(vars(self), separators=(",", ":"))
 
     def send(self, io):
-        json.dump(vars(self), io, encoding="utf8", separators=(",", ":"))
+        json.dump(vars(self), io, separators=(",", ":"))
 
     @property
     def content(self):
