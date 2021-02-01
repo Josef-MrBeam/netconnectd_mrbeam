@@ -69,8 +69,8 @@ def client_send_message(address, message):
         while True:
             chunk = sock.recv(16)
             if chunk:
-                buffer.append(chunk)
-                if chunk.endswith("\x00"):
+                buffer.append(chunk.decode('utf-8'))
+                if chunk.endswith(b"\x00"):
                     break
 
         data = "".join(buffer).strip()[:-1]
