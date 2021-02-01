@@ -722,7 +722,8 @@ class Server(object):
     @property
     def current_wifi(self):
         try:
-            iwconfig_output = subprocess.check_output(["/sbin/iwconfig", self.wifi_if])
+            iwconfig_output = subprocess.check_output(["/sbin/iwconfig",
+            self.wifi_if]).decode('utf-8')
         except subprocess.CalledProcessError as e:
             self.logger.warn(
                 "Error while trying to retrieve status of {wifi_if}: {output}".format(
