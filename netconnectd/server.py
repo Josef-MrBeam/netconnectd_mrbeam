@@ -85,6 +85,7 @@ class Server(object):
         path_dnsmasq="/usr/sbin/dnsmasq",
         path_dnsmasq_conf="/etc/dnsmasq.conf.d",
         path_interfaces="/etc/network/interfaces",
+        path_interfaces_d="/etc/network/interfaces.d",
     ):
 
         self.logger = logging.getLogger(__name__)
@@ -102,7 +103,7 @@ class Server(object):
         self.Dnsmasq = wifi.Dnsmasq.for_dnsmasq_and_confd(
             path_dnsmasq, path_dnsmasq_conf
         )
-        self.Scheme = wifi.Scheme.for_file(path_interfaces)
+        self.Scheme = wifi.Scheme.for_file(path_interfaces, path_interfaces_d)
         self.AccessPoint = wifi.AccessPoint.for_classes(
             hostapd_cls=self.Hostapd, dnsmasq_cls=self.Dnsmasq, scheme_cls=self.Scheme
         )
