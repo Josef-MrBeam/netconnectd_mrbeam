@@ -1,0 +1,13 @@
+[Unit]
+Description=A deamon to configure network connections
+After=network.target
+
+[Service]
+User=root
+ExecStart=/usr/local/netconnectd/venv/bin/netconnectd -d --config /etc/netconnectd.conf.d/netconnectd.yaml
+ExecStopPost=rm /var/run/netconnectd.sock
+PIDFile=/var/run/netconnectd.pid
+Type=forking
+
+[Install]
+WantedBy=multi-user.target
