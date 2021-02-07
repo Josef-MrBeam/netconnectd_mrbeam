@@ -4,9 +4,15 @@ After=network.target
 
 [Service]
 User=root
-ExecStart=/usr/local/netconnectd/venv/bin/netconnectd -d --config /etc/netconnectd.conf.d/netconnectd.yaml
-ExecStopPost=rm /var/run/netconnectd.sock
-PIDFile=/var/run/netconnectd.pid
+Environment=DAEMON=/usr/local/netconnectd/venv/bin/netconnectd
+Environment=CONFIGFILE=/etc/netconnectd.conf.d/netconnectd.yaml
+Environment=SOCKET=/var/run/netconnectd.sock
+Environment=PIDFILE=/var/run/netconnectd.pid
+Environment=LOGFILE=/var/log/netconnectd.log
+EnvironmentFile=-/etc/default/netconnectd
+ExecStart=/bin/sh -c "${DAEMON} --pid ${PIDFILE} --config ${CONFIGFILE} --address ${SOCKET} --logfile ${LOGFILE} $EXTRA_OPTS >/tmp/netconnectd"
+ExecStopPost=rm -f ${SOCKET}
+PIDFile=${PIDFILE}
 Type=forking
 
 [Install]
