@@ -319,10 +319,12 @@ class Server(object):
             import time
 
             try:
-                output = subprocess.check_output(["rfkill", "block", "wlan"])
+                output = subprocess.check_output(["rfkill", "block",
+                    "wlan"]).decode('utf-8')
                 self.logger.debug("Blocked wifi, sleeping now for 2s: " + output)
                 time.sleep(2)
-                output = subprocess.check_output(["rfkill", "unblock", "wlan"])
+                output = subprocess.check_output(["rfkill", "unblock",
+                    "wlan"]).decode('utf-8')
                 self.logger.debug("Unblocked wifi again: " + output)
             except:
                 self.logger.exception(
@@ -509,7 +511,7 @@ class Server(object):
                     # let's try that again, sometimes second time's the charm
                     self.wifi_connection.activate()
                     return True
-                except wifi.scheme.WifiError as e:
+                except wifi.scheme.WifiError:
                     self.logger.exception(
                         "Second try at connecting to the network failed, giving up"
                     )
