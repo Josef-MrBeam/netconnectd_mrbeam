@@ -4,13 +4,10 @@
 #DAEMON='/usr/local/netconnectd/venv/bin/netconnectd'
 
 # Path to netconnectd configuration file
-#CONFIGFILE=/etc/netconnectd.yaml
+#CONFIGFILE=/etc/netconnectd.conf.d/netconnectd.yaml
 
 # Path to socket file
 #SOCKET=/var/run/netconnectd.sock
-
-# Path to pid file
-#PIDFILE=/var/run/netconnectd.pid
 
 # Path to log file
 #LOGFILE=/var/log/netconnectd.log

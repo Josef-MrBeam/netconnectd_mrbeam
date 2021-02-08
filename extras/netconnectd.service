@@ -7,12 +7,11 @@ User=root
 Environment=DAEMON=/usr/local/netconnectd/venv/bin/netconnectd
 Environment=CONFIGFILE=/etc/netconnectd.conf.d/netconnectd.yaml
 Environment=SOCKET=/var/run/netconnectd.sock
-Environment=PIDFILE=/var/run/netconnectd.pid
 Environment=LOGFILE=/var/log/netconnectd.log
 EnvironmentFile=-/etc/default/netconnectd
-ExecStart=/bin/sh -c "${DAEMON} --pid ${PIDFILE} --config ${CONFIGFILE} --address ${SOCKET} --logfile ${LOGFILE} $EXTRA_OPTS >/tmp/netconnectd"
-ExecStopPost=rm -f ${SOCKET}
-PIDFile=${PIDFILE}
+ExecStart=/bin/sh -c "${DAEMON} --pid /var/run/netconnectd.pid --config ${CONFIGFILE} --address ${SOCKET} --logfile ${LOGFILE} $EXTRA_OPTS >/tmp/netconnectd"
+ExecStopPost=rm -f ${SOCKET} ${PIDFILE}
+PIDFile=/var/run/netconnectd.pid
 Type=forking
 
 [Install]
