@@ -44,6 +44,27 @@ iwconfig_re = re.compile(
 
 
 class Server(object):
+
+    @classmethod
+    def get_country_list(cls):
+        country_list = []
+        try:
+            with open("/usr/share/zoneinfo/iso3166.tab") as country_file:
+                for country_line in country_file:
+                    country_line = country_line.strip()
+                    if not country_line.startswith("#"):
+                        code, country = country_line.split("\t")
+                        country_list.append({"code": code,
+                                            "country": country})
+        except Exception as e:
+            print(e)
+            country_list = [
+                {"code": "US",
+                "country": "United States"},
+                {"code": "DE",
+                "country": "Germany"},]
+        return country_list
+
     @classmethod
     def convert_cells(cls, cells):
         result = []
@@ -126,15 +147,36 @@ class Server(object):
         # Make sure it's safe to run nmcli
         if wifi_free:
             try:
-                subprocess.check_call(["nmcli", "nm", "status"])
+                subprocess.run(["nmcli", "nm", "status"],
+                    stderr=subprocess.PIPE)
             except OSError as e:
-                self.logger.warn("Couldn't run nmcli (%s): %s", e.filename, e.message)
+                self.logger.warn("Couldn't run nmcli (%s): %s", e.filename,
+                    e.strerror)
                 self.logger.warn("Disabling NetworkManager compatibility.")
                 wifi_free = False
             except subprocess.CalledProcessError as e:
-                self.logger.warn("Error during test run of nmcli: %s", e.message)
+                self.logger.warn("Error during test run of nmcli: %s", e.stderr)
                 self.logger.warn("Disabling NetworkManager compatibility.")
                 wifi_free = False
+
+        # shut down any running instances of wpa_supplicant
+        try:
+            subprocess.call(["systemctl", "stop", "wpa_supplicant.service"])
+        except:
+            pass
+        try:
+            subprocess.call(["pkill","wpa_supplicant"])
+        except:
+            pass
+        # shut down any running instances of dnsmasq
+        try:
+            subprocess.call(["systemctl", "stop", "dnsmasq.service"])
+        except:
+            pass
+        try:
+            subprocess.call(["pkill","dnsmasq"])
+        except:
+            pass
 
         self.wifi_free = wifi_free
 
@@ -200,6 +242,7 @@ class Server(object):
         # we need to make sure that client messages and link events are never handled concurrently, so we synchronize via
         # this mutex
         self.mutex = threading.RLock()
+        self.country_list = self.__class__.get_country_list()
 
     def _link_monitor(self, interval=10, callback=None):
         former_link, reachable_devs = has_link()
