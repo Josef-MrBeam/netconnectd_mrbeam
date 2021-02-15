@@ -145,6 +145,12 @@ class ForgetWifiMessage(Message):
 class ResetMessage(Message):
     __cmd__ = "reset"
 
+class CountryList(Message):
+    __cmd__ = "country_list"
+
+class SetCountry(Message):
+    __cmd__ = "set_country"
+
 
 class Response(object):
     def __str__(self):

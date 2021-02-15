@@ -33,6 +33,8 @@ from .protocol import (
     StatusMessage,
     SuccessResponse,
     ErrorResponse,
+    CountryList,
+    SetCountry,
 )
 
 
@@ -349,6 +351,8 @@ class Server(object):
         message_callbacks[StatusMessage.__cmd__] = self.on_status_message
         message_callbacks[ResetMessage.__cmd__] = self.on_reset_message
         message_callbacks[ForgetWifiMessage.__cmd__] = self.on_forget_wifi_message
+        message_callbacks[CountryList.__cmd__] = self.on_country_list_message
+        message_callbacks[SetCountry.__cmd__] = self.on_set_country_message
 
         self._socket_monitor(self.server_address, callbacks=message_callbacks)
 
@@ -756,6 +760,24 @@ class Server(object):
 
         self.logger.info("Link still down, starting access point")
         self.start_ap()
+
+    def on_country_list_message(self, message):
+        country = None
+        try:
+            with open('/etc/wpa_supplicant/wpa_supplicant.conf') as wpa_s_c:
+                for line in wpa_s_c:
+                    line = line.strip()
+                    if line.startswith("country="):
+                        country = line.split("=", 1)[1]
+                        break
+        except:
+            pass
+        return True, {"country": country,
+                    "countries": self.country_list,}
+
+    def on_set_country_message(self, message):
+        # Todo - set country
+        pass
 
     @property
     def wifi_connection_ssid(self):
