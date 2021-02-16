@@ -22,8 +22,7 @@ def has_link():
     link = False
     reachable_devs = set()
 
-    output = subprocess.check_output(["/sbin/ip", "neigh",
-    "show"]).decode('utf-8')
+    output = subprocess.check_output(["/sbin/ip", "neigh", "show"]).decode("utf-8")
 
     lines = output.split("\n")
     for line in lines:

@@ -46,7 +46,6 @@ iwconfig_re = re.compile(
 
 
 class Server(object):
-
     @classmethod
     def get_country_list(cls):
         country_list = []
@@ -56,15 +55,13 @@ class Server(object):
                     country_line = country_line.strip()
                     if not country_line.startswith("#"):
                         code, country = country_line.split("\t")
-                        country_list.append({"code": code,
-                                            "country": country})
+                        country_list.append({"code": code, "country": country})
         except Exception as e:
             print(e)
             country_list = [
-                {"code": "US",
-                "country": "United States"},
-                {"code": "DE",
-                "country": "Germany"},]
+                {"code": "US", "country": "United States"},
+                {"code": "DE", "country": "Germany"},
+            ]
         return country_list
 
     @classmethod
@@ -149,11 +146,9 @@ class Server(object):
         # Make sure it's safe to run nmcli
         if wifi_free:
             try:
-                subprocess.run(["nmcli", "nm", "status"],
-                    stderr=subprocess.PIPE)
+                subprocess.run(["nmcli", "nm", "status"], stderr=subprocess.PIPE)
             except OSError as e:
-                self.logger.warn("Couldn't run nmcli (%s): %s", e.filename,
-                    e.strerror)
+                self.logger.warn("Couldn't run nmcli (%s): %s", e.filename, e.strerror)
                 self.logger.warn("Disabling NetworkManager compatibility.")
                 wifi_free = False
             except subprocess.CalledProcessError as e:
@@ -167,7 +162,7 @@ class Server(object):
         except:
             pass
         try:
-            subprocess.call(["pkill","wpa_supplicant"])
+            subprocess.call(["pkill", "wpa_supplicant"])
         except:
             pass
         # shut down any running instances of dnsmasq
@@ -176,7 +171,7 @@ class Server(object):
         except:
             pass
         try:
-            subprocess.call(["pkill","dnsmasq"])
+            subprocess.call(["pkill", "dnsmasq"])
         except:
             pass
 
@@ -366,12 +361,14 @@ class Server(object):
             import time
 
             try:
-                output = subprocess.check_output(["rfkill", "block",
-                    "wlan"]).decode('utf-8')
+                output = subprocess.check_output(["rfkill", "block", "wlan"]).decode(
+                    "utf-8"
+                )
                 self.logger.debug("Blocked wifi, sleeping now for 2s: " + output)
                 time.sleep(2)
-                output = subprocess.check_output(["rfkill", "unblock",
-                    "wlan"]).decode('utf-8')
+                output = subprocess.check_output(["rfkill", "unblock", "wlan"]).decode(
+                    "utf-8"
+                )
                 self.logger.debug("Unblocked wifi again: " + output)
             except:
                 self.logger.exception(
@@ -764,7 +761,7 @@ class Server(object):
     def on_country_list_message(self, message):
         country = None
         try:
-            with open('/etc/wpa_supplicant/wpa_supplicant.conf') as wpa_s_c:
+            with open("/etc/wpa_supplicant/wpa_supplicant.conf") as wpa_s_c:
                 for line in wpa_s_c:
                     line = line.strip()
                     if line.startswith("country="):
@@ -772,8 +769,10 @@ class Server(object):
                         break
         except:
             pass
-        return True, {"country": country,
-                    "countries": self.country_list,}
+        return True, {
+            "country": country,
+            "countries": self.country_list,
+        }
 
     def on_set_country_message(self, message):
         self.logger.info("Setting country to {}.".format(message.country_code))
@@ -807,8 +806,9 @@ class Server(object):
     @property
     def current_wifi(self):
         try:
-            iwconfig_output = subprocess.check_output(["/sbin/iwconfig",
-            self.wifi_if]).decode('utf-8')
+            iwconfig_output = subprocess.check_output(
+                ["/sbin/iwconfig", self.wifi_if]
+            ).decode("utf-8")
         except subprocess.CalledProcessError as e:
             self.logger.warn(
                 "Error while trying to retrieve status of {wifi_if}: {output}".format(

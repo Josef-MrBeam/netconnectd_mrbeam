@@ -64,12 +64,12 @@ def client_send_message(address, message):
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     sock.connect(address)
     try:
-        sock.sendall(str(message).encode('utf-8') + b"\x00")
+        sock.sendall(str(message).encode("utf-8") + b"\x00")
         buffer = []
         while True:
             chunk = sock.recv(16)
             if chunk:
-                buffer.append(chunk.decode('utf-8'))
+                buffer.append(chunk.decode("utf-8"))
                 if chunk.endswith(b"\x00"):
                     break
 

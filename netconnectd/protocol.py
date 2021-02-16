@@ -78,9 +78,7 @@ class Message(object):
             )
 
     def __str__(self):
-        return json.dumps(
-            self.__class__.to_message_obj(self), separators=(",", ":")
-        )
+        return json.dumps(self.__class__.to_message_obj(self), separators=(",", ":"))
 
     def __repr__(self):
         return "{name}({attrs})".format(
@@ -145,13 +143,14 @@ class ForgetWifiMessage(Message):
 class ResetMessage(Message):
     __cmd__ = "reset"
 
+
 class CountryList(Message):
     __cmd__ = "country_list"
+
 
 class SetCountry(Message):
     __cmd__ = "set_country"
     __mandatory_params__ = {"country_code"}
-
 
 
 class Response(object):
