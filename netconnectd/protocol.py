@@ -150,6 +150,8 @@ class CountryList(Message):
 
 class SetCountry(Message):
     __cmd__ = "set_country"
+    __mandatory_params__ = {"country_code"}
+
 
 
 class Response(object):

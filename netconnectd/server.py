@@ -776,8 +776,25 @@ class Server(object):
                     "countries": self.country_list,}
 
     def on_set_country_message(self, message):
-        # Todo - set country
-        pass
+        self.logger.info("Setting country to {}.".format(message.country_code))
+        try:
+            with open("/etc/wpa_supplicant/wpa_supplicant.conf") as wpa_s_c:
+                content = ""
+                skip = False
+                for line in wpa_s_c:
+                    if not line.strip():
+                        skip = False
+                    elif line.strip().startswith("country="):
+                        skip = True
+                    if not skip:
+                        content += line
+            content += "country={}\n".format(message.country_code)
+            with open("/etc/wpa_supplicant/wpa_supplicant.conf", "w") as wpa_s_c:
+                wpa_s_c.write(content)
+            return True, "country changed"
+        except Exception as e:
+            self.logger.warn("Unable to set country: " + e)
+            return False, "error on changing country"
 
     @property
     def wifi_connection_ssid(self):
