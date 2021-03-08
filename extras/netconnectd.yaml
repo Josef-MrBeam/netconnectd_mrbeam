@@ -17,6 +17,10 @@ interfaces:
 #  # interval between link checks
 #  interval: 10
 
+# Configure how the list of available WiFi access points appears
+ap_list:
+  # Don't show access points with hidden SSID
+  filter_hidden_ssid: True
 
 # access point configuration
 ap:

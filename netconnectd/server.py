@@ -64,21 +64,6 @@ class Server(object):
             ]
         return country_list
 
-    @classmethod
-    def convert_cells(cls, cells):
-        result = []
-        for cell in cells:
-            result.append(
-                dict(
-                    ssid=cell.ssid,
-                    channel=cell.channel,
-                    address=cell.address,
-                    encrypted=cell.encrypted,
-                    signal=cell.signal if hasattr(cell, "signal") else None,
-                )
-            )
-        return result
-
     def __init__(
         self,
         server_address=None,
@@ -106,6 +91,7 @@ class Server(object):
         path_dnsmasq_conf="/etc/dnsmasq.conf.d",
         path_interfaces="/etc/network/interfaces",
         path_interfaces_d="/etc/network/interfaces.d",
+        filter_hidden_ssid=False,
     ):
 
         self.logger = logging.getLogger(__name__)
@@ -131,6 +117,7 @@ class Server(object):
         self.ap_name = ap_name
         self.wifi_if = wifi_if
         self.wifi_name = wifi_name
+        self.filter_hidden_ssid = filter_hidden_ssid
 
         self.wifi_if_present = True
         try:
@@ -255,6 +242,24 @@ class Server(object):
                 former_link = current_link
             except:
                 self.logger.exception("Something went wrong inside the link monitor")
+
+    def convert_cells(self, cells):
+        result = []
+        for cell in cells:
+            if (
+                (not cell.ssid) or cell.ssid == None or cell.ssid == ""
+            ) and self.filter_hidden_ssid:
+                continue
+            result.append(
+                dict(
+                    ssid=cell.ssid,
+                    channel=cell.channel,
+                    address=cell.address,
+                    encrypted=cell.encrypted,
+                    signal=cell.signal if hasattr(cell, "signal") else None,
+                )
+            )
+        return result
 
     def _socket_monitor(self, server_address, callbacks=None):
         if not callbacks:
@@ -496,7 +501,7 @@ class Server(object):
         self.cells = wifi.Cell.all(self.wifi_if)
 
         self.logger.debug("Converting result of scan")
-        return self.__class__.convert_cells(self.cells)
+        return self.convert_cells(self.cells)
 
     def find_cell(self, ssid, force=False):
         if not self.cells:
@@ -636,7 +641,7 @@ class Server(object):
 
         if self.access_point.is_running():
             if self.cells:
-                return True, self.__class__.convert_cells(self.cells)
+                return True, self.convert_cells(self.cells)
             elif not message.force:
                 return (
                     False,
@@ -650,7 +655,7 @@ class Server(object):
             # we have to refresh it manually
             self.wifi_scan()
 
-        return True, self.__class__.convert_cells(self.cells)
+        return True, self.convert_cells(self.cells)
 
     def on_configure_wifi_message(self, message):
         if not self.wifi_if_present:
@@ -851,6 +856,7 @@ def start_server(config):
         path_dnsmasq=config["paths"]["dnsmasq"],
         path_dnsmasq_conf=config["paths"]["dnsmasq_conf"],
         path_interfaces=config["paths"]["interfaces"],
+        filter_hidden_ssid=config["ap_list"]["filter_hidden_ssid"],
     )
     s = Server(**kwargs)
     s.start()
@@ -1016,6 +1022,11 @@ def server():
         choices=["stop", "status"],
         help="Control the netconnectd daemon, supported arguments are 'stop' and 'status'.",
     )
+    parser.add_argument(
+        "--filter_hidden_ssid",
+        action="store_true",
+        help="Don't display access points with hidden SSIDs.",
+    )
 
     args = parser.parse_args()
 
@@ -1123,6 +1134,9 @@ def server():
         config["wifi"]["free"] = True
     if args.wifi_kill:
         config["wifi"]["kill"] = True
+
+    if args.filter_hidden_ssid:
+        config["ap_list"]["filter_hidden_ssid"] = True
 
     if args.path_hostapd:
         config["paths"]["hostapd"] = args.path_hostapd

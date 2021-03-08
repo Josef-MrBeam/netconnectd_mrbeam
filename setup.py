@@ -221,7 +221,9 @@ def params():
     packages = ["netconnectd"]
     zip_safe = False
 
-    dependency_links = ["https://github.com/ManuelMcLure/wifi/tarball/master#egg=wifi-1.1.0"]
+    dependency_links = [
+        "https://github.com/ManuelMcLure/wifi/tarball/master#egg=wifi-1.1.0"
+    ]
     install_requires = ["wifi==1.1.0", "PyYaml", "netaddr"]
 
     entry_points = {

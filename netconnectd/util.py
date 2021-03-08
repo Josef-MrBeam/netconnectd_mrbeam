@@ -71,6 +71,9 @@ default_config = dict(
         dnsmasq_conf="/etc/dnsmasq.conf.d",
         interfaces="/etc/network/interfaces",
     ),
+    ap_list=dict(
+        filter_hidden_ssid=False,
+    ),
 )
 
 
