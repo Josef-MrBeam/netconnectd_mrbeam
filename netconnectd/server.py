@@ -1102,6 +1102,9 @@ def server():
         config["ap"]["driver"] = args.ap_driver
     if args.ap_ssid:
         config["ap"]["ssid"] = args.ap_ssid
+    else:
+        # Default SSID should be the hostname
+        config["ap"]["ssid"] = socket.gethostname()
     if args.ap_psk:
         config["ap"]["psk"] = args.ap_psk
     if args.ap_channel:
