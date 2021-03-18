@@ -1102,13 +1102,6 @@ def server():
         config["ap"]["driver"] = args.ap_driver
     if args.ap_ssid:
         config["ap"]["ssid"] = args.ap_ssid
-    else:
-        try:
-            import socket
-            # Default SSID should be the hostname
-            config["ap"]["ssid"] = socket.gethostname()
-        except Exception:
-            parse.error("Failed to read system hostname")
     if args.ap_psk:
         config["ap"]["psk"] = args.ap_psk
     if args.ap_channel:
@@ -1152,9 +1145,12 @@ def server():
             "Wifi interface is missing, supply with either --interface-wifi or via config file"
         )
     if not config["ap"]["ssid"]:
-        parser.error(
-            "AP SSID is missing, supply with either --ap-ssid or via config file"
-        )
+        try:
+            import socket
+            # Default SSID should be the hostname
+            config["ap"]["ssid"] = socket.gethostname()
+        except Exception:
+            parse.error("Failed to read system hostname")
 
     if args.foreground:
         # start directly instead of as daemon
