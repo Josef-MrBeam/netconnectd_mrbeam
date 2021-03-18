@@ -1069,8 +1069,6 @@ def server():
     config = copy.deepcopy(default_config)
 
     configfile = args.config
-    if not configfile:
-        configfile = "/etc/netconnectd.yaml"
 
     import os
 
@@ -1145,12 +1143,9 @@ def server():
             "Wifi interface is missing, supply with either --interface-wifi or via config file"
         )
     if not config["ap"]["ssid"]:
-        try:
-            import socket
-            # Default SSID should be the hostname
-            config["ap"]["ssid"] = socket.gethostname()
-        except Exception:
-            parse.error("Failed to read system hostname")
+        parser.error(
+            "AP SSID is missing, supply with either --ap-ssid or via config file"
+        )
 
     if args.foreground:
         # start directly instead of as daemon

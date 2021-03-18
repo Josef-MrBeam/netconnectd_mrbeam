@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import
 
 import argparse
+import socket
 import subprocess
 import yaml
 import os
@@ -14,7 +15,7 @@ common_arguments.add_argument(
     help="Address of Unix Domain Socket used for communication",
 )
 common_arguments.add_argument(
-    "-c", "--config", type=str, help="Location of config file to use"
+    "-c", "--config", type=str, help="Location of config file to use", default="/etc/netconnectd.yaml"
 )
 
 
@@ -50,7 +51,7 @@ default_config = dict(
     ap=dict(
         name="netconnectd_ap",
         driver="nl80211",
-        ssid=None,
+        ssid=socket.gethostname(),
         psk=None,
         channel=3,
         ip="10.250.250.1",
@@ -78,7 +79,7 @@ def parse_configfile(configfile):
     if not os.path.exists(configfile):
         return None
 
-    mandatory = ("interface.wifi", "ap.ssid")
+    mandatory = ("interfaces.wifi")
 
     try:
         with open(configfile, "r") as f:

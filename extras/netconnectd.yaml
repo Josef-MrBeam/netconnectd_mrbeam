@@ -28,7 +28,7 @@ ap:
   #driver: nl80211
 
   # your AP wifi's SSID
-  ssid: MrBeam2-AP
+  #ssid: MrBeam2-AP
 
   # your AP wifi's passphrase
   psk: mrbeamsetup
