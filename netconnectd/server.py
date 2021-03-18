@@ -946,7 +946,7 @@ def server():
     parser.add_argument(
         "--ap-driver", help="The driver to use for the hostapd, defaults to nl80211"
     )
-    parser.add_argument("--ap-ssid", help="SSID of the AP wifi")
+    parser.add_argument("--ap-ssid", help="SSID of the AP wifi, defaults to the system hostname")
     parser.add_argument(
         "--ap-psk",
         help="Passphrase with which to secure the AP wifi, defaults to creation of an unsecured wifi",
@@ -1103,8 +1103,12 @@ def server():
     if args.ap_ssid:
         config["ap"]["ssid"] = args.ap_ssid
     else:
-        # Default SSID should be the hostname
-        config["ap"]["ssid"] = socket.gethostname()
+        try:
+            import socket
+            # Default SSID should be the hostname
+            config["ap"]["ssid"] = socket.gethostname()
+        except Exception:
+            parse.error("Failed to read system hostname")
     if args.ap_psk:
         config["ap"]["psk"] = args.ap_psk
     if args.ap_channel:
