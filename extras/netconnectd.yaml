@@ -17,7 +17,7 @@ interfaces:
 #  # interval between link checks
 #  interval: 10
 
-# Configure how the list of available WiFi access points appears
+# Configure how the list of available WiFi access points appeard
 ap_list:
   # Don't show access points with hidden SSID
   filter_hidden_ssid: True
@@ -61,6 +61,9 @@ ap:
   # whether to create a true AP forwarding to the wired interface, defaults
   # to false
   #forwarding_to_wired: false 
+  
+  # whether to create the AP even if wired connectivity is available
+  enable_if_wired: true
 
 # wifi configuration
 wifi:

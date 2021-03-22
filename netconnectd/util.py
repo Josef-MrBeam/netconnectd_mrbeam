@@ -58,6 +58,7 @@ default_config = dict(
         range=("10.250.250.100", "10.250.250.200"),
         domain=None,
         forwarding_to_wired=False,
+        enable_if_wired=False,
     ),
     wifi=dict(
         name="netconnectd_wifi",
