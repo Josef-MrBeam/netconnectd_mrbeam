@@ -59,9 +59,10 @@ class Server(object):
         except Exception as e:
             print(e)
             country_list = [
-                {"code": "US", "country": "United States"},
                 {"code": "DE", "country": "Germany"},
+                {"code": "US", "country": "United States"},
             ]
+        country_list.sort(key=lambda k: k["country"])
         return country_list
 
     def __init__(
