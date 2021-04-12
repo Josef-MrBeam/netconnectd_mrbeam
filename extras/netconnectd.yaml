@@ -81,6 +81,9 @@ wifi:
   # Recommended, but depends on the rfkill command to be available
   kill: true
 
+  # default country setting
+  default_country: DE
+
 # various paths of tools used
 paths:
   # path to hostapd executable

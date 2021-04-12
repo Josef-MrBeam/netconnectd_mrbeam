@@ -87,6 +87,7 @@ class Server(object):
         wifi_name="netconnect_wifi",
         wifi_free=False,
         wifi_kill=False,
+        wifi_default_country="DE",
         path_hostapd="/usr/sbin/hostapd",
         path_hostapd_conf="/etc/hostapd/conf.d",
         path_dnsmasq="/usr/sbin/dnsmasq",
@@ -119,6 +120,7 @@ class Server(object):
         self.ap_name = ap_name
         self.wifi_if = wifi_if
         self.wifi_name = wifi_name
+        self.wifi_default_country = wifi_default_country
         self.filter_hidden_ssid = filter_hidden_ssid
         self.ap_enable_if_wired = ap_enable_if_wired
 
@@ -780,6 +782,8 @@ class Server(object):
                     if line.startswith("country="):
                         country = line.split("=", 1)[1]
                         break
+                else:
+                    country = self.wifi_default_country
         except:
             pass
         return True, {
@@ -860,6 +864,7 @@ def start_server(config):
         wifi_name=config["wifi"]["name"],
         wifi_free=config["wifi"]["free"],
         wifi_kill=config["wifi"]["kill"],
+        wifi_default_country=config["wifi"]["default_country"],
         path_hostapd=config["paths"]["hostapd"],
         path_hostapd_conf=config["paths"]["hostapd_conf"],
         path_dnsmasq=config["paths"]["dnsmasq"],
@@ -1010,6 +1015,10 @@ def server():
         "--wifi-kill",
         action="store_true",
         help="Whether the wifi interface has to be killed before every configuration attmept, defaults to false",
+    )
+    parser.add_argument(
+        "--wifi-default-country",
+        help="What country to set in wpa_supplicant.conf by default",
     )
     parser.add_argument(
         "--path-hostapd",
