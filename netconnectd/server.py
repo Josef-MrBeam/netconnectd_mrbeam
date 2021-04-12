@@ -180,6 +180,7 @@ class Server(object):
         self.server_address = server_address
 
         # prepare access point configuration
+        self.ap_ssid = ap_ssid
         self.logger.debug("Creating access point object and resetting configuration")
         self.access_point = self.AccessPoint.for_arguments(
             self.wifi_if,
@@ -715,6 +716,7 @@ class Server(object):
     def on_status_message(self, message):
         current_ssid, current_address = self.current_wifi
 
+
         wifi = wired = ap = False
         if (
             self.wifi_if_present
@@ -727,6 +729,9 @@ class Server(object):
             ap = True
         if self.wired_if in self.last_reachable_devs:
             wired = True
+
+        if current_ssid == None and ap:
+            current_ssid=self.ap_ssid
 
         return True, dict(
             link=self.last_link,
