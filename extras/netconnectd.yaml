@@ -65,6 +65,9 @@ ap:
   # whether to create the AP even if wired connectivity is available
   enable_if_wired: true
 
+  # should this redirect all DNS requests to the AP address?
+  captive_portal: true
+
 # wifi configuration
 wifi:
   # nick name under which the wifi connection will be saved, usually 
