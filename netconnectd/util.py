@@ -18,14 +18,16 @@ common_arguments.add_argument(
 )
 
 
-def has_link():
+def has_link(logger):
     link = False
     reachable_devs = set()
 
     output = subprocess.check_output(["/sbin/ip", "neigh", "show"]).decode("utf-8")
 
     lines = output.split("\n")
+    logger.debug("/sbin/ip neigh show")
     for line in lines:
+        logger.debug(line)
         split_line = line.split()
 
         if not len(split_line) == 6:

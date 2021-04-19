@@ -235,14 +235,14 @@ class Server(object):
         self.country_list = self.__class__.get_country_list()
 
     def _link_monitor(self, interval=10, callback=None):
-        former_link, reachable_devs = has_link()
+        former_link, reachable_devs = has_link(self.logger)
 
         self.logger.info("Starting up link monitor with interval %ds" % interval)
 
         while True:
             try:
                 with self.mutex:
-                    current_link, reachable_devs = has_link()
+                    current_link, reachable_devs = has_link(self.logger)
                     callback(former_link, current_link, reachable_devs)
                 time.sleep(interval)
                 former_link = current_link
@@ -549,6 +549,16 @@ class Server(object):
         try:
             self.wifi_connection.activate()
             self.logger.info("Connected to wifi %s" % self.wifi_connection_ssid)
+            if self.logger.getEffectiveLevel() == logging.DEBUG:
+                try:
+                    self.logger.debug("ifconfig {}".format(self.wifi_if))
+                    output = subprocess.check_output(["ifconfig",
+                                        self.wifi_if]).decode("utf-8")
+                    lines = output.split("\n")
+                    for line in lines:
+                        self.logger.debug(line)
+                except:
+                    pass
             return True
 
         except wifi.scheme.WifiError as e:
