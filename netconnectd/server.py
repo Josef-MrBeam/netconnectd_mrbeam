@@ -298,7 +298,7 @@ class Server(object):
                     while True:
                         chunk = connection.recv(16)
                         if chunk:
-                            self.logger.info("Recv: %r" % chunk)
+                            self.logger.debug("Recv: %r" % chunk)
                             buffer.append(chunk)
                             if chunk.endswith(b"\x00"):
                                 break
@@ -322,7 +322,7 @@ class Server(object):
                     else:
                         response = ErrorResponse(result)
 
-                    self.logger.info("Send: %s" % str(response))
+                    self.logger.debug("Send: %s" % str(response))
                     connection.sendall(str(response).encode("utf-8") + b"\x00")
 
                 except:
