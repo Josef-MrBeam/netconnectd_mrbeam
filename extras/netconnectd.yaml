@@ -17,6 +17,10 @@ interfaces:
 #  # interval between link checks
 #  interval: 10
 
+# Configure how the list of available WiFi access points appeard
+ap_list:
+  # Don't show access points with hidden SSID
+  filter_hidden_ssid: True
 
 # access point configuration
 ap:
@@ -57,6 +61,12 @@ ap:
   # whether to create a true AP forwarding to the wired interface, defaults
   # to false
   #forwarding_to_wired: false 
+  
+  # whether to create the AP even if wired connectivity is available
+  enable_if_wired: true
+
+  # should this redirect all DNS requests to the AP address?
+  captive_portal: true
 
 # wifi configuration
 wifi:
@@ -73,6 +83,9 @@ wifi:
   #
   # Recommended, but depends on the rfkill command to be available
   kill: true
+
+  # default country setting
+  default_country: DE
 
 # various paths of tools used
 paths:

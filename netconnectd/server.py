@@ -59,25 +59,11 @@ class Server(object):
         except Exception as e:
             print(e)
             country_list = [
-                {"code": "US", "country": "United States"},
                 {"code": "DE", "country": "Germany"},
+                {"code": "US", "country": "United States"},
             ]
+        country_list.sort(key=lambda k: k["country"])
         return country_list
-
-    @classmethod
-    def convert_cells(cls, cells):
-        result = []
-        for cell in cells:
-            result.append(
-                dict(
-                    ssid=cell.ssid,
-                    channel=cell.channel,
-                    address=cell.address,
-                    encrypted=cell.encrypted,
-                    signal=cell.signal if hasattr(cell, "signal") else None,
-                )
-            )
-        return result
 
     def __init__(
         self,
@@ -97,15 +83,18 @@ class Server(object):
         ap_range=("10.250.250.100", "10.250.250.200"),
         ap_forwarding=False,
         ap_domain=None,
+        ap_enable_if_wired=False,
         wifi_name="netconnect_wifi",
         wifi_free=False,
         wifi_kill=False,
+        wifi_default_country="DE",
         path_hostapd="/usr/sbin/hostapd",
         path_hostapd_conf="/etc/hostapd/conf.d",
         path_dnsmasq="/usr/sbin/dnsmasq",
         path_dnsmasq_conf="/etc/dnsmasq.conf.d",
         path_interfaces="/etc/network/interfaces",
         path_interfaces_d="/etc/network/interfaces.d",
+        filter_hidden_ssid=False,
     ):
 
         self.logger = logging.getLogger(__name__)
@@ -131,6 +120,9 @@ class Server(object):
         self.ap_name = ap_name
         self.wifi_if = wifi_if
         self.wifi_name = wifi_name
+        self.wifi_default_country = wifi_default_country
+        self.filter_hidden_ssid = filter_hidden_ssid
+        self.ap_enable_if_wired = ap_enable_if_wired
 
         self.wifi_if_present = True
         try:
@@ -188,6 +180,7 @@ class Server(object):
         self.server_address = server_address
 
         # prepare access point configuration
+        self.ap_ssid = ap_ssid
         self.logger.debug("Creating access point object and resetting configuration")
         self.access_point = self.AccessPoint.for_arguments(
             self.wifi_if,
@@ -242,19 +235,37 @@ class Server(object):
         self.country_list = self.__class__.get_country_list()
 
     def _link_monitor(self, interval=10, callback=None):
-        former_link, reachable_devs = has_link()
+        former_link, reachable_devs = has_link(self.logger)
 
         self.logger.info("Starting up link monitor with interval %ds" % interval)
 
         while True:
             try:
                 with self.mutex:
-                    current_link, reachable_devs = has_link()
+                    current_link, reachable_devs = has_link(self.logger)
                     callback(former_link, current_link, reachable_devs)
                 time.sleep(interval)
                 former_link = current_link
             except:
                 self.logger.exception("Something went wrong inside the link monitor")
+
+    def convert_cells(self, cells):
+        result = []
+        for cell in cells:
+            if (
+                (not cell.ssid) or cell.ssid == None or cell.ssid == ""
+            ) and self.filter_hidden_ssid:
+                continue
+            result.append(
+                dict(
+                    ssid=cell.ssid,
+                    channel=cell.channel,
+                    address=cell.address,
+                    encrypted=cell.encrypted,
+                    signal=cell.signal if hasattr(cell, "signal") else None,
+                )
+            )
+        return result
 
     def _socket_monitor(self, server_address, callbacks=None):
         if not callbacks:
@@ -287,7 +298,7 @@ class Server(object):
                     while True:
                         chunk = connection.recv(16)
                         if chunk:
-                            self.logger.info("Recv: %r" % chunk)
+                            self.logger.debug("Recv: %r" % chunk)
                             buffer.append(chunk)
                             if chunk.endswith(b"\x00"):
                                 break
@@ -311,7 +322,7 @@ class Server(object):
                     else:
                         response = ErrorResponse(result)
 
-                    self.logger.info("Send: %s" % str(response))
+                    self.logger.debug("Send: %s" % str(response))
                     connection.sendall(str(response).encode("utf-8") + b"\x00")
 
                 except:
@@ -496,7 +507,7 @@ class Server(object):
         self.cells = wifi.Cell.all(self.wifi_if)
 
         self.logger.debug("Converting result of scan")
-        return self.__class__.convert_cells(self.cells)
+        return self.convert_cells(self.cells)
 
     def find_cell(self, ssid, force=False):
         if not self.cells:
@@ -538,6 +549,16 @@ class Server(object):
         try:
             self.wifi_connection.activate()
             self.logger.info("Connected to wifi %s" % self.wifi_connection_ssid)
+            if self.logger.getEffectiveLevel() == logging.DEBUG:
+                try:
+                    self.logger.debug("ifconfig {}".format(self.wifi_if))
+                    output = subprocess.check_output(["ifconfig",
+                                        self.wifi_if]).decode("utf-8")
+                    lines = output.split("\n")
+                    for line in lines:
+                        self.logger.debug(line)
+                except:
+                    pass
             return True
 
         except wifi.scheme.WifiError as e:
@@ -636,7 +657,7 @@ class Server(object):
 
         if self.access_point.is_running():
             if self.cells:
-                return True, self.__class__.convert_cells(self.cells)
+                return True, self.convert_cells(self.cells)
             elif not message.force:
                 return (
                     False,
@@ -650,7 +671,7 @@ class Server(object):
             # we have to refresh it manually
             self.wifi_scan()
 
-        return True, self.__class__.convert_cells(self.cells)
+        return True, self.convert_cells(self.cells)
 
     def on_configure_wifi_message(self, message):
         if not self.wifi_if_present:
@@ -705,6 +726,7 @@ class Server(object):
     def on_status_message(self, message):
         current_ssid, current_address = self.current_wifi
 
+
         wifi = wired = ap = False
         if (
             self.wifi_if_present
@@ -717,6 +739,9 @@ class Server(object):
             ap = True
         if self.wired_if in self.last_reachable_devs:
             wired = True
+
+        if current_ssid == None and ap:
+            current_ssid=self.ap_ssid
 
         return True, dict(
             link=self.last_link,
@@ -737,26 +762,31 @@ class Server(object):
     def on_link_change(self, former_link, current_link, current_devs):
         self.last_link = current_link
         self.last_reachable_devs = tuple(current_devs)
+        wifi_link = self.wifi_if in current_devs
 
         access_point_running = self.access_point.is_running()
         if current_link or access_point_running:
             if current_link and not former_link and not access_point_running:
                 self.logger.debug("Link restored!")
             self.link_down_count = 0
-            return
-
-        if self.link_down_count < self.linkmon_maxdown:
+        elif self.link_down_count < self.linkmon_maxdown:
             self.logger.debug("Link down since %d retries" % self.link_down_count)
             self.link_down_count += 1
             return
-
-        if self.wifi_connection is not None:
+        elif self.wifi_connection is not None:
             self.logger.info("Link down, got a configured wifi connection, trying that")
             if self.start_wifi(enable_restart=False):
                 return
 
-        self.logger.info("Link still down, starting access point")
-        self.start_ap()
+        # Enable AP if we have no link OR if we have just wired and we want
+        # the AP even in this case
+        if not access_point_running:
+            if not current_link:
+                self.logger.info("Link still down, starting access point")
+                self.start_ap()
+            elif self.ap_enable_if_wired and not wifi_link:
+                self.logger.info("Only wired link active, starting access point")
+                self.start_ap()
 
     def on_country_list_message(self, message):
         country = None
@@ -767,6 +797,8 @@ class Server(object):
                     if line.startswith("country="):
                         country = line.split("=", 1)[1]
                         break
+                else:
+                    country = self.wifi_default_country
         except:
             pass
         return True, {
@@ -843,14 +875,17 @@ def start_server(config):
         ap_range=config["ap"]["range"],
         ap_forwarding=config["ap"]["forwarding_to_wired"],
         ap_domain=config["ap"]["domain"],
+        ap_enable_if_wired=config["ap"]["enable_if_wired"],
         wifi_name=config["wifi"]["name"],
         wifi_free=config["wifi"]["free"],
         wifi_kill=config["wifi"]["kill"],
+        wifi_default_country=config["wifi"]["default_country"],
         path_hostapd=config["paths"]["hostapd"],
         path_hostapd_conf=config["paths"]["hostapd_conf"],
         path_dnsmasq=config["paths"]["dnsmasq"],
         path_dnsmasq_conf=config["paths"]["dnsmasq_conf"],
         path_interfaces=config["paths"]["interfaces"],
+        filter_hidden_ssid=config["ap_list"]["filter_hidden_ssid"],
     )
     s = Server(**kwargs)
     s.start()
@@ -978,6 +1013,11 @@ def server():
         help="Enable forwarding from AP to wired connection, disabled by default",
     )
     parser.add_argument(
+        "--ap-enable-if-wired",
+        action="store_true",
+        help="Enable AP even if we have a working wired connection",
+    )
+    parser.add_argument(
         "--wifi-name",
         help="Internal name to assign to Wifi config, defaults to 'netconnectd_wifi', you mostly won't have to set this",
     )
@@ -990,6 +1030,10 @@ def server():
         "--wifi-kill",
         action="store_true",
         help="Whether the wifi interface has to be killed before every configuration attmept, defaults to false",
+    )
+    parser.add_argument(
+        "--wifi-default-country",
+        help="What country to set in wpa_supplicant.conf by default",
     )
     parser.add_argument(
         "--path-hostapd",
@@ -1012,9 +1056,18 @@ def server():
         help="Path to interfaces configuration file, defaults to /etc/network/interfaces",
     )
     parser.add_argument(
+        "--path-interfaces-d",
+        help="Path to interfaces.d configuration folder, defaults to /etc/network/interfaces.d",
+    )
+    parser.add_argument(
         "--daemon",
         choices=["stop", "status"],
         help="Control the netconnectd daemon, supported arguments are 'stop' and 'status'.",
+    )
+    parser.add_argument(
+        "--filter-hidden-ssid",
+        action="store_true",
+        help="Don't display access points with hidden SSIDs.",
     )
 
     args = parser.parse_args()
@@ -1114,6 +1167,8 @@ def server():
         config["ap"]["domain"] = args.ap_domain
     if args.ap_forwarding:
         config["ap"]["forward_to_wired"] = True
+    if args.ap_enable_if_wired:
+        config["ap"]["enable_if_wired"] = True
 
     if args.wifi_name:
         config["wifi"]["name"] = args.wifi_name
@@ -1121,6 +1176,9 @@ def server():
         config["wifi"]["free"] = True
     if args.wifi_kill:
         config["wifi"]["kill"] = True
+
+    if args.filter_hidden_ssid:
+        config["ap_list"]["filter_hidden_ssid"] = True
 
     if args.path_hostapd:
         config["paths"]["hostapd"] = args.path_hostapd

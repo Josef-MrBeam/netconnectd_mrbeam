@@ -5,6 +5,7 @@ import socket
 import subprocess
 import yaml
 import os
+import re
 
 
 common_arguments = argparse.ArgumentParser(add_help=False)
@@ -19,23 +20,45 @@ common_arguments.add_argument(
 )
 
 
-def has_link():
+def has_link(logger):
     link = False
     reachable_devs = set()
 
-    output = subprocess.check_output(["/sbin/ip", "neigh", "show"]).decode("utf-8")
+    output = subprocess.check_output(["/sbin/ip", "address", "show"]).decode("utf-8")
 
     lines = output.split("\n")
+    logger.debug("/sbin/ip address show")
+    dev_match = re.compile(r"^\d+:")
+    skip_to_next_dev = True
     for line in lines:
+        logger.debug(line)
         split_line = line.split()
-
-        if not len(split_line) == 6:
+        if len(split_line) < 2:
             continue
-        ip, dev_str, dev, addr_str, addr, state = split_line
 
-        if not state.lower() in ["incomplete", "failed", "none"]:
-            link = True
-            reachable_devs.add(dev)
+        logger.debug(split_line)
+        if dev_match.match(split_line[0]):
+            dev = split_line[1][0:-1]   # strip off :
+            if dev == "lo" or "no-carrier" in split_line[2].lower():
+                skip_to_next_dev = True;
+            else:
+                skip_to_next_dev = False;
+            continue
+
+        if skip_to_next_dev:
+            continue
+
+        if split_line[0].startswith("inet"):
+            if "scope" in split_line and "global" in split_line:
+                address = split_line[1]
+                if "/" in address:
+                    address = address.split("/")[0]
+                if address.startswith("127.") or address.startswith("::1"):
+                    continue
+                # There's a global address - consider link up
+                link = True
+                logger.debug("Device {} up".format(dev))
+                reachable_devs.add(dev)
 
     return link, reachable_devs
 
@@ -59,11 +82,13 @@ default_config = dict(
         range=("10.250.250.100", "10.250.250.200"),
         domain=None,
         forwarding_to_wired=False,
+        enable_if_wired=False,
     ),
     wifi=dict(
         name="netconnectd_wifi",
         free=False,
         kill=False,
+        default_country="DE",
     ),
     paths=dict(
         hostapd="/usr/sbin/hostapd",
@@ -71,6 +96,9 @@ default_config = dict(
         dnsmasq="/usr/sbin/dnsmasq",
         dnsmasq_conf="/etc/dnsmasq.conf.d",
         interfaces="/etc/network/interfaces",
+    ),
+    ap_list=dict(
+        filter_hidden_ssid=False,
     ),
 )
 
