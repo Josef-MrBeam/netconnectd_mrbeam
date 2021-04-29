@@ -105,7 +105,7 @@ default_config = dict(
 
 def parse_configfile(configfile):
     if not os.path.exists(configfile):
-        return None
+        return default_config
 
     mandatory = ("interfaces.wifi")
 
