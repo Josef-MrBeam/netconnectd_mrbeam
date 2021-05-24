@@ -34,7 +34,7 @@ class Server(object):
     def __init__(self, server_address=None, wifi_if=None, wired_if=None, linkmon_enabled=True, linkmon_maxdown=3, linkmon_interval=10,
                  ap_driver="nl80211", ap_ssid=None, ap_psk=None, ap_name='netconnectd_ap', ap_channel=3, ap_ip='10.250.250.1',
                  ap_network='10.250.250.0/24', ap_range=('10.250.250.100', '10.250.250.200'), ap_forwarding=False,
-                 ap_domain=None, wifi_name='netconnect_wifi', wifi_free=False, wifi_kill=False, path_hostapd="/usr/sbin/hostapd",
+                 ap_domain=None, wifi_name='netconnectd_wifi', wifi_free=False, wifi_kill=False, path_hostapd="/usr/sbin/hostapd",
                  path_hostapd_conf="/etc/hostapd/conf.d", path_dnsmasq="/usr/sbin/dnsmasq", path_dnsmasq_conf="/etc/dnsmasq.conf.d",
                  path_interfaces="/etc/network/interfaces"):
 
@@ -265,7 +265,11 @@ class Server(object):
 
         # bring up the ap
         self.logger.debug("Freeing wifi interface")
-        self.free_wifi()
+        try:
+            self.wifi_connection.deactivate()
+        except:
+            pass
+        self.reset_wifi()
         self.logger.debug("Starting up AP")
 
         try:
