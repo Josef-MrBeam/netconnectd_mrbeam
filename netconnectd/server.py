@@ -84,7 +84,7 @@ class Server(object):
         ap_forwarding=False,
         ap_domain=None,
         ap_enable_if_wired=False,
-        wifi_name="netconnect_wifi",
+        wifi_name="netconnectd_wifi",
         wifi_free=False,
         wifi_kill=False,
         wifi_default_country="DE",
@@ -415,7 +415,11 @@ class Server(object):
 
         # bring up the ap
         self.logger.debug("Freeing wifi interface")
-        self.free_wifi()
+        try:
+            self.wifi_connection.deactivate()
+        except:
+            pass
+        self.reset_wifi()
         self.logger.debug("Starting up AP")
 
         try:
